@@ -1,0 +1,65 @@
+name: CI
+# Repositories link to each other by folder until the packages are published,
+# so this workflow checks the related repositories out next to this one.
+# They are public by default. If any are private, add a repository secret
+# CROSS_REPO_TOKEN (a token with read access to the sethucms repositories).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@v4
+        with:
+          path: sethucms-adapter-sdk
+      - name: Check out sethucms
+        uses: actions/checkout@v4
+        with:
+          repository: sethucms/sethucms
+          path: sethucms
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Build core
+        run: pnpm install --no-frozen-lockfile && pnpm --filter @sethucms/core build
+        working-directory: sethucms
+      - run: pnpm install --no-frozen-lockfile
+        working-directory: sethucms-adapter-sdk
+      - run: pnpm typecheck
+        working-directory: sethucms-adapter-sdk
+      - run: pnpm build
+        working-directory: sethucms-adapter-sdk
+      - run: pnpm test
+        working-directory: sethucms-adapter-sdk
+
+
+  ci-ok:
+    name: CI OK
+    if: always()
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          [ "${{ needs.test.result }}" = "success" ]

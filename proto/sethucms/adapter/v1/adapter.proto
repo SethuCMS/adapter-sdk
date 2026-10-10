@@ -1,0 +1,110 @@
+// The SethuCMS adapter protocol, version 1.
+//
+// An adapter written in any language can serve this protocol, and the gateway
+// talks to it as if it were a built-in adapter. The gateway still applies every
+// permission, read-only, validation and pagination rule BEFORE calling you
+// (see the GuardedAdapter in @sethucms/adapter-sdk), so your server only has
+// to translate between the portable query and your database.
+//
+// Payloads travel as JSON text. Every canonical field type is already JSON:
+// datetime and date are ISO 8601 strings, decimal is a number or numeric
+// string, binary is base64, geopoint is {"lat":..,"lng":..}. JSON is used
+// instead of protobuf messages so adapters need no generated types for the
+// content model, which changes more often than this protocol.
+//
+// Errors: answer with a gRPC status AND put the SethuCMS error code in the
+// trailing metadata key `sethucms-error-code` (one of CONNECTION_FAILED,
+// AUTH_FAILED, FORBIDDEN, READ_ONLY, NOT_FOUND, CONFLICT, VALIDATION_FAILED,
+// CAPABILITY_UNSUPPORTED, RATE_LIMITED, TIMEOUT, INTERNAL). For
+// VALIDATION_FAILED you may add `sethucms-error-details` (JSON list of
+// {"path","message"}). The message of an INTERNAL error is never shown to users.
+//
+// Authentication: every call carries `authorization: Bearer <token>` metadata.
+// Use TLS. The gateway refuses plain-text connections to non-local addresses
+// in production.
+
+syntax = "proto3";
+
+package sethucms.adapter.v1;
+
+service Adapter {
+  // Which adapter this is and which optional calls it supports. Called once, first.
+  rpc Describe(Empty) returns (DescribeReply);
+  // Open the connection to the database. `config` and `credentials` are the
+  // "remote" parts of what the administrator saved. Never log credentials.
+  rpc Connect(ConnectRequest) returns (Empty);
+  // JSON of the Capabilities object. Be honest: the platform refuses queries you cannot run.
+  rpc Capabilities(Empty) returns (JsonReply);
+  // JSON list of CollectionDefinition, with canonical field types.
+  rpc Introspect(Empty) returns (JsonReply);
+  rpc Find(FindRequest) returns (FindReply);
+  rpc Get(GetRequest) returns (GetReply);
+  rpc Create(WriteRequest) returns (JsonReply);
+  rpc Update(WriteRequest) returns (JsonReply);
+  rpc Delete(GetRequest) returns (Empty);
+  // Release the database connection. Must be safe to call twice.
+  rpc Disconnect(Empty) returns (Empty);
+  // Optional. List them in DescribeReply.optional_calls, or answer UNIMPLEMENTED.
+  rpc CreateCollection(CollectionRequest) returns (Empty);
+  rpc FinishBulkLoad(CollectionRequest) returns (Empty);
+}
+
+message Empty {}
+
+message DescribeReply {
+  // For example "postgres" or "acme-crm".
+  string type = 1;
+  // Always "1" for this file.
+  string protocol_version = 2;
+  // Any of: "createCollection", "finishBulkLoad".
+  repeated string optional_calls = 3;
+}
+
+message ConnectRequest {
+  string connection_id = 1;
+  string config_json = 2;
+  string credentials_json = 3;
+  bool read_only = 4;
+}
+
+message JsonReply {
+  string json = 1;
+}
+
+message FindRequest {
+  // CollectionDefinition as JSON.
+  string collection_json = 1;
+  // Query as JSON: already validated against the collection and your capabilities.
+  string query_json = 2;
+  // What you returned as next_position_json for the previous page. Empty for the first page.
+  string position_json = 3;
+}
+
+message FindReply {
+  // JSON list of records, at most query.page.limit.
+  string records_json = 1;
+  // Where the next page starts, as JSON. Empty means there are no more records.
+  string next_position_json = 2;
+}
+
+message GetRequest {
+  string collection_json = 1;
+  // The record id as JSON (a number stays a number, a string stays a string).
+  string id_json = 2;
+}
+
+message GetReply {
+  bool found = 1;
+  string record_json = 2;
+}
+
+message WriteRequest {
+  string collection_json = 1;
+  // Only for Update.
+  string id_json = 2;
+  string values_json = 3;
+}
+
+message CollectionRequest {
+  string collection_json = 1;
+}
