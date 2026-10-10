@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SethuCMS/sethucms-adapter-sdk.git"
+    "url": "git+https://github.com/SethuCMS/adapter-sdk.git"
   },
-  "homepage": "https://github.com/SethuCMS/sethucms-adapter-sdk#readme",
+  "homepage": "https://github.com/SethuCMS/adapter-sdk#readme",
   "bugs": {
-    "url": "https://github.com/SethuCMS/sethucms-adapter-sdk/issues"
+    "url": "https://github.com/SethuCMS/adapter-sdk/issues"
   },
   "type": "module",
   "main": "./dist/src/index.js",
