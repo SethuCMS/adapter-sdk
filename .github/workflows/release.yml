@@ -22,11 +22,11 @@ jobs:
         node: [22]
     steps:
       - name: Check out this repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: sethucms-adapter-sdk
       - name: Check out sethucms
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: sethucms/sethucms
           path: sethucms
