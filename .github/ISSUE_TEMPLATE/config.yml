@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem (private)
+    url: https://github.com/SethuCMS/sethucms/blob/main/SECURITY.md
+    about: Do not open a public issue for a vulnerability. Follow the steps here instead.
+  - name: Read the guides
+    url: https://github.com/SethuCMS/sethucms-docs
+    about: Setup, deployment and how each part works.

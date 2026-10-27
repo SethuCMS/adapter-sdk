@@ -1,0 +1,88 @@
+name: Something is broken
+description: A crash, a wrong result or a screen that does not work.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. A good report is one a stranger can follow.
+        **Never paste passwords, API tokens, connection strings or private keys.**
+        Replace them with `***` before you submit.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part?
+      options:
+        - Gateway (the API)
+        - Admin app
+        - TypeScript SDK
+        - Dart and Flutter SDK
+        - Python SDK
+        - Database adapter
+        - Documentation
+        - Website
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: How are you running it?
+      options:
+        - On my own computer or server
+        - The hosted admin app
+        - Docker or a cloud service
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The package version, or the commit if you built it yourself.
+      placeholder: "0.1.1"
+  - type: input
+    id: database
+    attributes:
+      label: Database
+      description: Which database is connected, and its version.
+      placeholder: "PostgreSQL 16"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Say what you saw. Add a screenshot if it helps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we make it happen again?
+      description: Numbered steps, starting from a fresh start if you can.
+      placeholder: |
+        1. Sign in
+        2. Open Content
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error messages or logs
+      description: Copy the text. Remove any secrets first. The request id from an error helps us find it.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the open issues and did not find this one.
+          required: true
+        - label: I removed passwords, tokens and connection strings from everything above.
+          required: true
